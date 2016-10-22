@@ -80,28 +80,29 @@ void Game::update(int delta) {
     std::vector<std::pair<float, float> > asteroidsData;
 
     for(auto j : asteroids) {
+      float n = 800 * 800;
       float distance = (i->x - j->x) * (i->x - j->x) + (i->y - j->y) * (i->y - j->y);
+      distance /= n;
       float angle = atan2(j->y - i->y, j->x - i->x) * 57.2958 + 180;
 
       // if(distance == 0)
       	// asteroidsData.push_back({0, angle});
       // else
-	asteroidsData.push_back({distance, angle});
+	asteroidsData.push_back({1.0f / distance, angle});
     }
 
-    float n = 800 * 800;
 
     int div = ships[0]->network->layers[0].size();
 
-    std::vector<float> inputs(div, 1);
+    std::vector<float> inputs(div, 0);
 
     for(auto j : asteroidsData) {
       int index = j.second / (360 / div);
 
       mvprintw(1, 20, "%f", j.second);
       
-      if(inputs[index] > j.first / n) {
-	inputs[index] = j.first / n;
+      if(inputs[index] < j.first) {
+	inputs[index] = j.first;
       }
     }
 
@@ -146,7 +147,7 @@ void Game::update(int delta) {
     }
 
     for (int i = 2; i < ships.size(); i++) {
-      ships[i]->network->breed(ships[0]->network, ships[1]->network, 0.1f);
+      ships[i]->network->breed(ships[0]->network, ships[1]->network, 0.5f);
       if(i % 4 == 0) {
 	ships[i]->network->randomValues();
       }
@@ -243,7 +244,8 @@ void Asteroid::update() {
 }
 
 void Asteroid::init() {
-  while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 100*100) {
+  speed = std::rand() % 20;
+  while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
     x = std::rand() % 800;
     y = std::rand() % 600;
   }

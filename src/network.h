@@ -88,7 +88,7 @@ void Network::breed(Network *p1, Network *p2, float mutationRate) {
 	
       }
       if((std::rand() % 100) * 0.01f < mutationRate) {
-	this->layers[i][j]->mutate(mutationRate);
+	this->layers[i][j]->mutate(mutationRate * 0.1f);
       }
     }
   }

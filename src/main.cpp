@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   std::srand(std::time(0));
   window = new sf::RenderWindow(sf::VideoMode(800, 600), "My window");
   
-  std::vector<int> dimensions{8, 5, 2};
+  std::vector<int> dimensions{32, 20, 10, 2};
 
   WINDOW *w = initscr();
   cbreak();
@@ -44,10 +44,17 @@ int main(int argc, char **argv) {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
       speed++;
     }
-    window->clear(sf::Color::Black);
+
+    speed = std::max(0, speed);
+
+    if(speed > 0)
+      window->clear(sf::Color::Black);
 
     game->update(speed);
-    window->display();
+
+    if(speed > 0)
+      window->display();
+
     mvprintw(3, 0, "speed = %d", speed);
     refresh();
     std::this_thread::sleep_for(std::chrono::milliseconds(speed));
