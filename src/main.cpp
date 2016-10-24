@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   std::srand(std::time(0));
   window = new sf::RenderWindow(sf::VideoMode(800, 600), "My window");
   
-  std::vector<int> dimensions{32, 20, 10, 2};
+  std::vector<int> dimensions{16, 10, 2};
 
   WINDOW *w = initscr();
   cbreak();
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   int speed = 30;
 
   game->createNetworks(dimensions);
-  // char ch;
+  char ch;
   for(;;) {
     // ch = getch();
     // if(ch == 65) speed -= 5;
@@ -43,6 +43,9 @@ int main(int argc, char **argv) {
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
       speed++;
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+      game->saveBestNetwork("weights.txt");
     }
 
     speed = std::max(0, speed);

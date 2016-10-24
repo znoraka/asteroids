@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <numeric>
+#include <fstream>
 
 std::function<float(float)> sigmoid = [](float f) {
   return 1 / (1 + exp(-f));
@@ -21,16 +22,17 @@ public:
   void setValue(float f);
   void mutate(float mutationRate);
   void randomValues();
+  void save(std::ostream& stream);
   std::vector<float> weights;
+  float weight;
   
 private:
   std::vector<Neuron*> inputs;
   float output;
-  float weight;
 };
 
 Neuron::Neuron() {
-  this->weight = ((std::rand() % 200) - 100) * 0.01;
+  this->weight = ((std::rand() % 100)) * 0.01;
 }
 
 Neuron::Neuron(float weight) : weight(weight) {
@@ -55,12 +57,13 @@ void Neuron::activate() {
     f += inputs[i]->getOutput() * weights[i];
   }  
   output = sigmoid(f);
+  // if(output < weight) output = 0;
 }
 
 void Neuron::mutate(float mutationRate) {
   for(auto& i : weights) {
     if((std::rand() % 100) * 0.01f < mutationRate) {
-      i = i + ((std::rand() % 2000) - 1000) * 0.001 * mutationRate;
+      i += ((std::rand() % 2000) - 1000) * 0.0001;
     }
   }
 }
@@ -73,4 +76,11 @@ void Neuron::randomValues() {
 
 void Neuron::setValue(float f) {
   this->output = f;
+}
+
+void Neuron::save(std::ostream& stream) {
+  for(auto i : weights) {
+    stream << i << " ";
+  }
+  stream << "\n";
 }
