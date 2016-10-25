@@ -88,11 +88,9 @@ void Network::breed(Network *p1, Network *p2, float mutationRate) {
   for (int i = 1; i < layers.size(); i++) {
     for (int j = 0; j < layers[i].size(); j++) {
       for (int k = 0; k < layers[i][j]->weights.size(); k++) {
-	this->layers[i][j]->weights[k] = (std::rand() % 100 > 40) ? p1->layers[i][j]->weights[k] : p2->layers[i][j]->weights[k];
+	this->layers[i][j]->weights[k] = ((std::rand() % 2 == 0) ? p1->layers[i][j]->weights[k] : p2->layers[i][j]->weights[k]);
       }
-      if((std::rand() % 100) * 0.01f < mutationRate) {
-	this->layers[i][j]->mutate(mutationRate);
-      }
+      this->layers[i][j]->mutate(mutationRate);
     }
   }
 }

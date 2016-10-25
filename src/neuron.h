@@ -62,8 +62,8 @@ void Neuron::activate() {
 
 void Neuron::mutate(float mutationRate) {
   for(auto& i : weights) {
-    if((std::rand() % 100) * 0.01f < mutationRate) {
-      i += ((std::rand() % 2000) - 1000) * 0.0001;
+    if((std::rand() % 1000) * 0.001f < mutationRate) {
+      i = ((std::rand() % 2000) - 1000) * 0.002;
     }
   }
 }

@@ -10,13 +10,15 @@
 #include <SFML/Graphics.hpp>
 
 sf::RenderWindow *window;
+#define ELITISM 0.4f
+bool breedWithBest = false;
 
 #include "neuron.h"
 #include "network.h"
 #include "game.h"
 
+
 int main(int argc, char **argv) {
-  std::srand(std::time(0));
   window = new sf::RenderWindow(sf::VideoMode(800, 600), "My window");
   
   std::vector<int> dimensions{16, 10, 2};
@@ -44,6 +46,12 @@ int main(int argc, char **argv) {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
       speed++;
     }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+      breedWithBest = true;
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+      breedWithBest = false;
+    }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
       game->saveBestNetwork("weights.txt");
     }
@@ -59,6 +67,8 @@ int main(int argc, char **argv) {
       window->display();
 
     mvprintw(3, 0, "speed = %d", speed);
+    mvprintw(3, 15, "breedWithbest = %d", breedWithBest);
+
     refresh();
     std::this_thread::sleep_for(std::chrono::milliseconds(speed));
     clear();
