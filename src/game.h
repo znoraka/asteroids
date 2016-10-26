@@ -111,14 +111,14 @@ float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
 Game::Game() {
   std::srand(std::time(NULL));
 
-  for (int i = 0; i < 50; i++) {
+  for (int i = 0; i < 20; i++) {
     Ship *s = new Ship();
     s->init(400, 300);
     ships.push_back(s);
   } 
   aliveShips = ships.size();
 
-  for (int i = 0; i < 30; i++) {
+  for (int i = 0; i < 20; i++) {
     asteroids.push_back(new Asteroid());
   }
   stats.open("stats.txt");
@@ -181,7 +181,7 @@ void Game::update(int delta) {
     if(ships[0]->score > this->bestScore) {
       this->bestScore = ships[0]->score;
       this->bestNetwork->copyNetworkValues(ships[0]->network);
-      saveBestNetwork("weights.txt");
+      saveBestNetwork(outfile);
     }
 
     float sum = 0;
@@ -200,7 +200,7 @@ void Game::update(int delta) {
     }
 
     for (int i = 5; i < ships.size(); i++) {
-      ships[i]->network->breed(ships[d(gen)]->network, ships[d(gen)]->network, 0.1f);
+      ships[i]->network->breed(ships[d(gen)]->network, ships[d(gen)]->network, 0.4f);
       if(i % 15 == 0) {
 	ships[i]->network->randomValues();
       }
@@ -335,5 +335,6 @@ void Game::loadNetwork(std::string filename) {
   bestNetwork->load(filename);
   for(auto i : ships) {
     i->network->copyNetworkValues(bestNetwork);
+    i->network->compute();
   }
 }

@@ -134,11 +134,12 @@ void Network::load(std::string filename) {
     std::string buf;
     std::stringstream ss(line);
 
-    int j = 0;
+    int j = -1;
     while (ss >> buf) {
-      neurons[i]->weights[j++] = std::stof(buf);
+      if(j > 0) neurons[i]->weights[j] = std::stof(buf);
+      j++;
     }
+    std::cout << "\n";
   }
-  
   file.close();
 }
