@@ -7,9 +7,14 @@
 #include <ncurses.h>
 #include <chrono>
 #include <thread>
-#include <SFML/Graphics.hpp>
 
+// #define GRAPHICS
+
+#ifdef GRAPHICS
+#include <SFML/Graphics.hpp>
 sf::RenderWindow *window;
+#endif
+
 #define ELITISM 0.4f
 bool breedWithBest = false;
 
@@ -19,12 +24,16 @@ bool breedWithBest = false;
 
 
 int main(int argc, char **argv) {
+#ifdef GRAPHICS
   window = new sf::RenderWindow(sf::VideoMode(800, 600), "My window");
+#endif
   std::vector<int> dimensions;
 
-  for (int i = 1; i < argc; i++) {
+  for (int i = 2; i < argc; i++) {
     dimensions.push_back(atoi(argv[i]));
   }
+
+  std::string weights = argv[1];
 
   if(dimensions.size() == 0) dimensions = {16, 10, 2};
   
@@ -32,14 +41,23 @@ int main(int argc, char **argv) {
   cbreak();
   nodelay(w, TRUE);
 
+#ifdef GRAPHICS  
   int speed = 30;
+#else
+  int speed = 0;
+#endif
 
   game->createNetworks(dimensions);
+
+  if(weights.size() > 0)
+    game->loadNetwork("weights.txt");
+  
   char ch;
   for(;;) {
-    // ch = getch();
-    // if(ch == 65) speed -= 5;
-    // if(ch == 66) speed += 5;
+    ch = getch();
+    if(ch == ' ') game->saveBestNetwork("weights.txt");
+
+#ifdef GRAPHICS
     sf::Event event;
     while (window->pollEvent(event)) {
       if (event.type == sf::Event::Closed)
@@ -65,18 +83,22 @@ int main(int argc, char **argv) {
 
     if(speed > 0)
       window->clear(sf::Color::Black);
-
+#endif
+    clear();
     game->update(speed);
+    refresh();
 
+#ifdef GRAPHICS
     if(speed > 0)
       window->display();
+#endif
 
     mvprintw(3, 0, "speed = %d", speed);
     mvprintw(3, 15, "breedWithbest = %d", breedWithBest);
 
-    refresh();
+#ifdef GRAPHICS
     std::this_thread::sleep_for(std::chrono::milliseconds(speed));
-    clear();
+#endif
   }
   endwin();
 }

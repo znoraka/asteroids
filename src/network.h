@@ -4,6 +4,7 @@
 #include <numeric>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include "neuron.h"
 
@@ -16,6 +17,7 @@ public:
   void breed(Network *p1, Network *p2, float mutationRate = 0.05f);
   void randomValues();
   void save(std::string filename);
+  void load(std::string filename);
   
   void setInputs(std::vector<float> inputs);
   std::vector<Neuron *> getOutputs() const;
@@ -112,5 +114,31 @@ void Network::save(std::string filename) {
       this->layers[i][j]->save(file);
     }
   }
+  file.close();
+}
+
+void Network::load(std::string filename) {
+  std::ifstream file;
+  file.open (filename);
+
+  std::vector<Neuron*> neurons;
+
+  for (int i = 1; i < layers.size(); i++) {
+    for (int j = 0; j < layers[i].size(); j++) {
+      neurons.push_back(this->layers[i][j]);
+    }
+  }
+
+  for (int i = 0; i < neurons.size(); i++) {
+    std::string line; getline(file, line);
+    std::string buf;
+    std::stringstream ss(line);
+
+    int j = 0;
+    while (ss >> buf) {
+      neurons[i]->weights[j++] = std::stof(buf);
+    }
+  }
+  
   file.close();
 }

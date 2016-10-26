@@ -5,6 +5,9 @@
 #include <iomanip>
 #include <iostream>
 
+#define SHIP_SIZE 10
+#define ASTEROID_SIZE 20
+
 float getAngle(float x1, float y1, float x2, float y2) {
   std::vector<float> v1 = {0, 1};
   std::vector<float> v2 = {x2 - x1, y2 - y1};
@@ -60,6 +63,7 @@ public:
 
   void update(int delta);
   void saveBestNetwork(std::string filename);
+  void loadNetwork(std::string filename);
   Game();
 
   std::vector<Asteroid*> asteroids;
@@ -94,7 +98,7 @@ float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
     }
 
     for(auto i : asteroids) {
-      if(sqrt((i->x + 20 - x2) * (i->x + 20 - x2) + (i->y + 20 - y2) * (i->y + 20 - y2)) < 45) {
+      if(sqrt((i->x - x2) * (i->x - x2) + (i->y - y2) * (i->y - y2)) < ASTEROID_SIZE + SHIP_SIZE) {
 	return sqrt((ship->x - x2) * (ship->x - x2) + (ship->y - y2) * (ship->y - y2));
       }
     }
@@ -114,7 +118,7 @@ Game::Game() {
   } 
   aliveShips = ships.size();
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 30; i++) {
     asteroids.push_back(new Asteroid());
   }
   stats.open("stats.txt");
@@ -141,6 +145,7 @@ void Game::update(int delta) {
 	inputs[j] = raycast(asteroids, i, (float) j * (360.0 / (float) div)) * 0.001f;
       }
 
+#ifdef GRAPHICS
       int k = 0;
       for(auto j : inputs) {
       	sf::Vertex line[] =
@@ -151,12 +156,8 @@ void Game::update(int delta) {
       	  window->draw(line, 2, sf::Lines);
       	k++;
       }
-
-
-      for (int j = 0; j < inputs.size(); j++) {
-	mvprintw(4 + j, 0, "%f", inputs[j]);
-      }
-
+#endif
+      
       i->network->setInputs({inputs});
     }
   }
@@ -180,10 +181,8 @@ void Game::update(int delta) {
     if(ships[0]->score > this->bestScore) {
       this->bestScore = ships[0]->score;
       this->bestNetwork->copyNetworkValues(ships[0]->network);
+      saveBestNetwork("weights.txt");
     }
-
-    mvprintw(17, 0, "bestScore1 = %d", ships[0]->score);
-    mvprintw(18, 0, "bestScore2 = %d", ships[1]->score);
 
     float sum = 0;
     for (int i = 0; i < ships.size(); i++) {
@@ -200,29 +199,12 @@ void Game::update(int delta) {
       ships[i]->init(400, 300);
     }
 
-    if(breedWithBest) {
-      for (int i = 6; i < ships.size(); i++) {
-    	ships[i]->network->breed(bestNetwork, ships[d(gen)]->network, 0.1f);
-    	if(i % 15 == 0) {
-    	  ships[i]->network->randomValues();
-    	}
-      }
-    } else {
-      for (int i = 5; i < ships.size(); i++) {
-    	ships[i]->network->breed(ships[d(gen)]->network, ships[d(gen)]->network, 0.1f);
-    	if(i % 15 == 0) {
-    	  ships[i]->network->randomValues();
-    	}
-    	// ships[i]->network->compute();
+    for (int i = 5; i < ships.size(); i++) {
+      ships[i]->network->breed(ships[d(gen)]->network, ships[d(gen)]->network, 0.1f);
+      if(i % 15 == 0) {
+	ships[i]->network->randomValues();
       }
     }
-
-    /* for (int i = 1; i < ships.size(); i++) { */
-    /*   ships[i]->network->copyNetworkValues(bestNetwork); */
-    /*   ships[i]->network->mutate(0.1f); */
-    /* } */
-    
-    // ships[ships.size() - 1]->network->copyNetworkValues(bestNetwork);
   }
 
   mvprintw(0, 0, "bestscore = %d  score = %d", this->bestScore, score);
@@ -250,13 +232,14 @@ void Ship::init(float x, float y) {
 }
 
 void Ship::draw() {
-  sf::CircleShape shape(10);
-  shape.setOrigin(5, 5);
+#ifdef GRAPHICS
+  sf::CircleShape shape(SHIP_SIZE);
+  shape.setOrigin(SHIP_SIZE * 0.5, SHIP_SIZE * 0.5);
   shape.setFillColor(sf::Color(100, 250, 50));
   shape.setPosition(x, y);
 
   window->draw(shape);
-  // mvprintw(y, x, "H");
+#endif
 }
 
 void Ship::update() {
@@ -276,7 +259,7 @@ void Ship::update() {
     for(auto i : game->asteroids) {
       float distance = (i->x - x) * (i->x - x) + (i->y - y) * (i->y - y);
 
-      if(distance < 50*50) {
+      if(distance < (SHIP_SIZE + ASTEROID_SIZE) * (SHIP_SIZE + ASTEROID_SIZE))  {
 	alive = false;
 	game->aliveShips--;
       }
@@ -322,34 +305,35 @@ void Asteroid::init() {
   x = startX;
   y = startY;
 
-  // if(game->generation % 200 == 0) {
-    x = 400;
-    y = 300;
-  
-    while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
-      x = std::rand() % 800;
-      y = std::rand() % 600;
-    }
+  while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
+    x = std::rand() % 800;
+    y = std::rand() % 600;
+  }
 
-    startX = x;
-    startY = y;
   
-    xDir = (std::rand() % 100) * 0.01 - 0.5;
-    yDir = (std::rand() % 100) * 0.01 - 0.5;
+  xDir = (std::rand() % 100) * 0.01 - 0.5;
+  yDir = (std::rand() % 100) * 0.01 - 0.5;
 
-    speed = std::rand() % 10;
-  // }
+  speed = std::rand() % 10;
 }
 
 void Asteroid::draw() {
-  sf::CircleShape shape(40);
-  shape.setOrigin(20, 20);
+#ifdef GRAPHICS
+  sf::CircleShape shape(ASTEROID_SIZE);
   shape.setFillColor(sf::Color(200, 50, 50));
-  shape.setPosition(x, y);
+  shape.setPosition(x - ASTEROID_SIZE, y - ASTEROID_SIZE);
 
   window->draw(shape);
+#endif
 }
 
 void Game::saveBestNetwork(std::string filename) {
   bestNetwork->save(filename);
+}
+
+void Game::loadNetwork(std::string filename) {
+  bestNetwork->load(filename);
+  for(auto i : ships) {
+    i->network->copyNetworkValues(bestNetwork);
+  }
 }
