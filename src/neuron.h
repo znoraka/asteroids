@@ -57,13 +57,13 @@ void Neuron::activate() {
     f += inputs[i]->getOutput() * weights[i];
   }  
   output = sigmoid(f);
-  // if(output < weight) output = 0;
+  if(output < weight) output = 0;
 }
 
 void Neuron::mutate(float mutationRate) {
   for(auto& i : weights) {
-    if((std::rand() % 1000) * 0.001f < mutationRate) {
-      i = ((std::rand() % 2000) - 1000) * 0.002;
+    if((std::rand() % 100) * 0.01f < mutationRate) {
+      i += ((std::rand() % 2000) - 1000) * 0.001;
     }
   }
 }
@@ -79,6 +79,7 @@ void Neuron::setValue(float f) {
 }
 
 void Neuron::save(std::ostream& stream) {
+  stream << weight << " ";
   for(auto i : weights) {
     stream << i << " ";
   }

@@ -78,10 +78,36 @@ public:
 
 static Game *game = new Game();
 
+float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
+  float x1 = 10;
+  float y1 = 0;
+
+  x1 = cos(angle / 57.2958);
+  y1 = sin(angle / 57.2958);
+
+  float x2 = ship->x;
+  float y2 = ship->y;
+
+  for(;;) {
+    if(x2 > 800 || x2 < 0 || y2 > 600 || y2 < 0) {
+      return sqrt((ship->x - x2) * (ship->x - x2) + (ship->y - y2) * (ship->y - y2));
+    }
+
+    for(auto i : asteroids) {
+      if(sqrt((i->x + 20 - x2) * (i->x + 20 - x2) + (i->y + 20 - y2) * (i->y + 20 - y2)) < 45) {
+	return sqrt((ship->x - x2) * (ship->x - x2) + (ship->y - y2) * (ship->y - y2));
+      }
+    }
+    x2 += x1;
+    y2 += y1;
+  }
+}
+
+
 Game::Game() {
   std::srand(std::time(NULL));
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < 50; i++) {
     Ship *s = new Ship();
     s->init(400, 300);
     ships.push_back(s);
@@ -109,61 +135,22 @@ void Game::update(int delta) {
       i->update();
       if(delta > 0) i->draw();
 
-      std::vector<std::pair<float, float> > asteroidsData;
       int div = ships[0]->network->layers[0].size();
-      std::vector<float> inputs(div, 1600);
-
-      // for (int i = 0; i < div; i++) {
-      // 	float angle = i * (360 / (float) div);
-      // 	inputs[i]  = 
-      // }
-
-      // inputs[12] = (800 - i->x) / cos(0);
-      // inputs[13] = (800 - i->x) / cos(div / 57.2958);
-
-      for(auto j : asteroids) {
-      	float n = 800 * 800;
-      	float distance = (i->x - j->x) * (i->x - j->x) + (i->y - j->y) * (i->y - j->y);
-      	// distance /= n;
-      	distance = sqrt(distance);
-      	float angle = getAngle(i->x, i->y, j->x, j->y);
-      	// sf::Vertex line[] =
-      	//   {
-      	//     sf::Vertex(sf::Vector2f(i->x, i->y)),
-      	//     sf::Vertex(sf::Vector2f(i->x + distance * cos(-angle + M_PI * 0.5), i->y + distance * sin(-angle + M_PI * 0.5)))
-      	//   };
-      	// window->draw(line, 2, sf::Lines);
-
-      	asteroidsData.push_back({distance, angle + M_PI});
+      std::vector<float> inputs(div, 0);
+      for (int j = 0; j < div; j++) {
+	inputs[j] = raycast(asteroids, i, (float) j * (360.0 / (float) div)) * 0.001f;
       }
 
-      for(auto j : asteroidsData) {
-      	int index = (j.second * 57.2958) / (360.0 / (float) div);
-
-      	// mvprintw(1, 20, "%f", j.second);
-      	// mvprintw(2, 20, "%d", index);
-      	if(inputs[index] > j.first) {
-      	  inputs[index] = j.first;
-      	}
+      int k = 0;
+      for(auto j : inputs) {
+      	sf::Vertex line[] =
+      	  {
+      	    sf::Vertex(sf::Vector2f(i->x, i->y), sf::Color(255, 0, 0)),
+      	    sf::Vertex(sf::Vector2f(i->x + j * 1000 * cos((k * (360.0 / (float) div)) / 57.2958 + M_PI * 0), i->y + j * 1000 * sin((k * (360.0 / (float) div)) / 57.2958 + M_PI * 0)), sf::Color(255, 0, 0))
+      	  };
+      	  window->draw(line, 2, sf::Lines);
+      	k++;
       }
-
-      // inputs[inputs.size() - 2] = i->x;
-      // inputs[inputs.size() - 1] = i->y / 600.0;
-
-      // auto c1 = sf::Color(255, 0, 0);
-      // auto c2 = sf::Color(0, 0, 255);
-      // int k = 0;
-      // for(auto j : inputs) {
-      // 	sf::Vertex line[] =
-      // 	  {
-      // 	    sf::Vertex(sf::Vector2f(i->x, i->y), ((j < 750) ? c1 : c2)),
-      // 	    sf::Vertex(sf::Vector2f(i->x + j * cos(-(k * (360.0 / (float) div)) / 57.2958 - M_PI * 0.5), i->y + j * sin(-(k * (360.0 / (float) div)) / 57.2958 - M_PI * 0.5)), ((j < 750) ? c1 : c2))
-      // 	  };
-      // 	// if(j < 750)
-      // 	  window->draw(line, 2, sf::Lines);
-      // 	k++;
-	
-      // }
 
 
       for (int j = 0; j < inputs.size(); j++) {
@@ -297,43 +284,8 @@ void Ship::update() {
 
     network->compute();
 
-
-    // if(network->getOutputs()[0]->getOutput() > 0.5) {
-    //   x += 0.1f * network->getOutputs()[2]->getOutput() * speed;
-    // } else {
-    //   x -= 0.1f * network->getOutputs()[2]->getOutput() * speed;
-    // }
-    // if(network->getOutputs()[1]->getOutput() > 0.5) {
-    //   y += 0.1f * network->getOutputs()[2]->getOutput() * speed;
-    // } else {
-    //   y -= 0.1f * network->getOutputs()[2]->getOutput() * speed;
-    // }
-
-    // if(network->getOutputs()[0]->getOutput() > 0.5) {
-    //   x += 0.1f * speed;
-    // } else {
-    //   x -= 0.1f * speed;
-    // }
-    // if(network->getOutputs()[1]->getOutput() > 0.5) {
-    //   y += 0.1f * speed;
-    // } else {
-    //   y -= 0.1f * speed;
-    // }
-
     x += (network->getOutputs()[0]->getOutput() - 0.5f) * speed;
-    y += (network->getOutputs()[1]->getOutput() - 0.5f) * speed;
-
-    // float xDir = 3 * cos((network->getOutputs()[0]->getOutput() * 360.0) / M_PI);
-    // float yDir = 3 * sin((network->getOutputs()[0]->getOutput() * 360.0) / M_PI);
-
-    // if(network->getOutputs().size() > 1) {
-    //   xDir *= network->getOutputs()[1]->getOutput() * speed * 0.1;
-    //   yDir *= network->getOutputs()[1]->getOutput() * speed * 0.1;
-    // }
-
-    // x += xDir;
-    // y += yDir;
-    
+    y += (network->getOutputs()[1]->getOutput() - 0.5f) * speed;    
   }
 }
 
@@ -359,11 +311,7 @@ Asteroid::Asteroid() {
 void Asteroid::update() {
   x += xDir * speed;
   y += yDir * speed;
-
-  // if(x < -200) x = 800;
-  // if(x > 1000) x = -20;
-  // if(y < -100) y = 700;
-  // if(y > 700) y = -100;
+  
   if(x < 0) x = 800;
   if(x > 800) x = 0;
   if(y < 0) y = 600;
@@ -375,21 +323,21 @@ void Asteroid::init() {
   y = startY;
 
   // if(game->generation % 200 == 0) {
-    // x = 400;
-    // y = 300;
+    x = 400;
+    y = 300;
   
-    // while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
-    //   x = std::rand() % 800;
-    //   y = std::rand() % 600;
-    // }
+    while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
+      x = std::rand() % 800;
+      y = std::rand() % 600;
+    }
 
-    // startX = x;
-    // startY = y;
+    startX = x;
+    startY = y;
   
-    // xDir = (std::rand() % 100) * 0.01 - 0.5;
-    // yDir = (std::rand() % 100) * 0.01 - 0.5;
+    xDir = (std::rand() % 100) * 0.01 - 0.5;
+    yDir = (std::rand() % 100) * 0.01 - 0.5;
 
-    // speed = std::rand() % 10;
+    speed = std::rand() % 10;
   // }
 }
 

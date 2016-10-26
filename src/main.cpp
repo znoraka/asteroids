@@ -20,9 +20,14 @@ bool breedWithBest = false;
 
 int main(int argc, char **argv) {
   window = new sf::RenderWindow(sf::VideoMode(800, 600), "My window");
-  
-  std::vector<int> dimensions{64, 40, 2};
+  std::vector<int> dimensions;
 
+  for (int i = 1; i < argc; i++) {
+    dimensions.push_back(atoi(argv[i]));
+  }
+
+  if(dimensions.size() == 0) dimensions = {16, 10, 2};
+  
   WINDOW *w = initscr();
   cbreak();
   nodelay(w, TRUE);
