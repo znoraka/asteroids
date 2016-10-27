@@ -15,7 +15,6 @@
 sf::RenderWindow *window;
 #endif
 
-#define ELITISM 0.4f
 std::string outfile;
 
 #include "neuron.h"

@@ -1,12 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include <random>
-#include <iomanip>
 #include <iostream>
+#include <omp.h>
 
 #define SHIP_SIZE 10
-#define ASTEROID_SIZE 20
+#define ASTEROID_SIZE 25
 
 float getAngle(float x1, float y1, float x2, float y2) {
   std::vector<float> v1 = {0, 1};
@@ -29,7 +28,7 @@ public:
   float y;
   Network *network;
   bool alive;
-  float speed = 17.5f;
+  float speed = 6.0f;
   int score = 0;
 };
 
@@ -72,10 +71,6 @@ public:
   int aliveShips = 0;
   int generation = 0;
 
-  std::random_device rd;
-  std::mt19937 gen;
-  std::geometric_distribution<> d;
-
   void createNetworks(std::vector<int> dimensions);
 
 };
@@ -83,11 +78,11 @@ public:
 static Game *game = new Game();
 
 float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
-  float x1 = 10;
+  float x1 = 1;
   float y1 = 0;
 
-  x1 = cos(angle / 57.2958);
-  y1 = sin(angle / 57.2958);
+  x1 = ASTEROID_SIZE * cos(angle / 57.2958);
+  y1 = ASTEROID_SIZE * sin(angle / 57.2958);
 
   float x2 = ship->x;
   float y2 = ship->y;
@@ -122,9 +117,6 @@ Game::Game() {
     asteroids.push_back(new Asteroid());
   }
   stats.open("stats.txt");
-
-  gen = std::mt19937(rd());
-  d = std::geometric_distribution<>(ELITISM);
 }
 
 void Game::update(int delta) {
@@ -133,7 +125,7 @@ void Game::update(int delta) {
     i->update();
     if(delta > 0) i->draw();
   }
-  
+
   for(auto i : ships) {
     if(i->alive) {
       i->update();
@@ -141,6 +133,7 @@ void Game::update(int delta) {
 
       int div = ships[0]->network->layers[0].size();
       std::vector<float> inputs(div, 0);
+#pragma omp parallel for
       for (int j = 0; j < div; j++) {
 	inputs[j] = raycast(asteroids, i, (float) j * (360.0 / (float) div)) * 0.001f;
       }
@@ -174,13 +167,9 @@ void Game::update(int delta) {
       i->init();
     }
 
-    std::sort(ships.begin(), ships.end(), [](Ship *s1, Ship *s2) {
-	return s1->score > s2->score;
-      });
-
-    if(ships[0]->score > this->bestScore) {
-      this->bestScore = ships[0]->score;
-      this->bestNetwork->copyNetworkValues(ships[0]->network);
+    if(Network::networks[0]->score > this->bestScore) {
+      this->bestScore = Network::networks[0]->score;
+      this->bestNetwork->copyNetworkValues(Network::networks[0]);
       saveBestNetwork(outfile);
     }
 
@@ -199,12 +188,7 @@ void Game::update(int delta) {
       ships[i]->init(400, 300);
     }
 
-    for (int i = 5; i < ships.size(); i++) {
-      ships[i]->network->breed(ships[d(gen)]->network, ships[d(gen)]->network, 0.4f);
-      if(i % 15 == 0) {
-	ships[i]->network->randomValues();
-      }
-    }
+    Network::breed(0.4f);
   }
 
   mvprintw(0, 0, "bestscore = %d  score = %d", this->bestScore, score);
@@ -213,9 +197,10 @@ void Game::update(int delta) {
 }
 
 void Game::createNetworks(std::vector<int> dimensions) {
+  Network::generateNetworks(ships.size(), dimensions);
+  
   for (int i = 0; i < ships.size(); i++) {
-    ships[i]->network = new Network(dimensions);
-    ships[i]->network->compute();
+    ships[i]->network = Network::networks[i];
   }
   this->bestNetwork = new Network(dimensions);
 }
@@ -245,6 +230,7 @@ void Ship::draw() {
 void Ship::update() {
   if(alive) {
     score++;
+    this->network->score++;
 
     if(x < 0 || x > 800 || y < 0 || y > 600) {
       alive = false;
