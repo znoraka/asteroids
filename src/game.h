@@ -156,7 +156,6 @@ void Game::update(int delta) {
   }
 
   if(aliveShips <= 0) {
-    score = 0;
     generation++;
 
     aliveShips = ships.size();
@@ -167,11 +166,12 @@ void Game::update(int delta) {
       i->init();
     }
 
-    if(Network::networks[0]->score > this->bestScore) {
-      this->bestScore = Network::networks[0]->score;
-      this->bestNetwork->copyNetworkValues(Network::networks[0]);
+    if(this->score > this->bestScore) {
+      this->bestScore = score;
+      this->bestNetwork->copyNetworkValues(Network::bestNetwork);
       saveBestNetwork(outfile);
     }
+    score = 0;
 
     float sum = 0;
     for (int i = 0; i < ships.size(); i++) {
@@ -254,7 +254,7 @@ void Ship::update() {
     network->compute();
 
     x += (network->getOutputs()[0]->getOutput() - 0.5f) * speed;
-    y += (network->getOutputs()[1]->getOutput() - 0.5f) * speed;    
+    y += (network->getOutputs()[1]->getOutput() - 0.5f) * speed;
   }
 }
 

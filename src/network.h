@@ -19,6 +19,7 @@ public:
   static void generateNetworks(int count, std::vector<int> dimensions);
   static void breed(float mutationRate);
   static std::vector<Network*> networks;
+  static Network *bestNetwork;
   static std::random_device rd;
   static std::mt19937 gen;
   static std::geometric_distribution<> d;
@@ -102,7 +103,6 @@ void Network::copyNetworkValues(Network *n) {
 }
 
 void Network::breed(Network *p1, Network *p2, float mutationRate) {
-  score = 0;
   for (int i = 1; i < layers.size(); i++) {
     for (int j = 0; j < layers[i].size(); j++) {
       for (int k = 0; k < layers[i][j]->weights.size(); k++) {
@@ -161,12 +161,13 @@ void Network::load(std::string filename) {
 }
 
 std::vector<Network*> Network::networks;
+Network *Network::bestNetwork;
 std::random_device Network::rd;
 std::mt19937 Network::gen = std::mt19937(rd());
 std::geometric_distribution<> Network::d = std::geometric_distribution<>(ELITISM);
 
 void Network::generateNetworks(int count, std::vector<int> dimensions) {
-  std::cout << "generating " << count << " networks" << "\n";
+  Network::bestNetwork = new Network(dimensions);
   for (int i = 0; i < count; i++) {
     Network::networks.push_back(new Network(dimensions));
   }
@@ -176,7 +177,16 @@ void Network::breed(float mutationRate) {
   std::sort(Network::networks.begin(), Network::networks.end(), [](Network *n1, Network *n2) {
       return n1->score > n2->score;
     });
-  
+
+  if(Network::networks[0]->score > Network::bestNetwork->score) {
+    Network::bestNetwork->copyNetworkValues(Network::networks[0]);
+    Network::bestNetwork->score = Network::networks[0]->score;
+  }
+
+  for(auto i : Network::networks) {
+    i->score = 0;
+  }
+
   for (int i = Network::networks.size() * 0.1; i < Network::networks.size(); i++) {
     Network::networks[i]->breed(Network::networks[d(gen)], Network::networks[d(gen)], mutationRate);
     if(i % 15 == 0) {
