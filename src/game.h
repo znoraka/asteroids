@@ -7,8 +7,8 @@
 #define SHIP_SIZE 10
 #define SHIP_COUNT 20
 
-#define ASTEROID_COUNT 10
-#define ASTEROID_SIZE 25
+#define ASTEROID_COUNT 20
+#define ASTEROID_SIZE 30
 
 float getAngle(float x1, float y1, float x2, float y2) {
   std::vector<float> v1 = {0, 1};
@@ -44,6 +44,8 @@ public:
 
   float x;
   float y;
+
+  int size;
 
   float xDir;
   float yDir;
@@ -82,8 +84,8 @@ float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
   float x1 = 1;
   float y1 = 0;
 
-  x1 = ASTEROID_SIZE * cos(angle / 57.2958);
-  y1 = ASTEROID_SIZE * sin(angle / 57.2958);
+  x1 = SHIP_SIZE * cos(angle / 57.2958);
+  y1 = SHIP_SIZE * sin(angle / 57.2958);
 
   float x2 = ship->x;
   float y2 = ship->y;
@@ -94,7 +96,7 @@ float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
     }
 
     for(auto i : asteroids) {
-      if(sqrt((i->x - x2) * (i->x - x2) + (i->y - y2) * (i->y - y2)) < ASTEROID_SIZE + SHIP_SIZE) {
+      if(sqrt((i->x - x2) * (i->x - x2) + (i->y - y2) * (i->y - y2)) < i->size + SHIP_SIZE) {
 	return sqrt((ship->x - x2) * (ship->x - x2) + (ship->y - y2) * (ship->y - y2));
       }
     }
@@ -235,7 +237,7 @@ void Ship::update() {
     for(auto i : game->asteroids) {
       float distance = (i->x - x) * (i->x - x) + (i->y - y) * (i->y - y);
 
-      if(distance < (SHIP_SIZE + ASTEROID_SIZE) * (SHIP_SIZE + ASTEROID_SIZE))  {
+      if(distance < (SHIP_SIZE + i->size) * (SHIP_SIZE + i->size))  {
 	alive = false;
 	game->aliveShips--;
       }
@@ -266,6 +268,8 @@ void Asteroid::init() {
   x = startX;
   y = startY;
 
+  size = 5 + std::rand() % ASTEROID_SIZE;
+
   while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
     x = std::rand() % 800;
     y = std::rand() % 600;
@@ -282,9 +286,9 @@ void Asteroid::init() {
 
 void Asteroid::draw() {
 #ifdef GRAPHICS
-  sf::CircleShape shape(ASTEROID_SIZE);
+  sf::CircleShape shape(size);
   shape.setFillColor(sf::Color(200, 50, 50));
-  shape.setPosition(x - ASTEROID_SIZE, y - ASTEROID_SIZE);
+  shape.setPosition(x - size, y - size);
 
   window->draw(shape);
 #endif
