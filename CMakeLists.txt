@@ -8,6 +8,7 @@ ADD_DEFINITIONS(
   -lpthread
   -Ofast
   -lncurses
+  # -fopenmp
   # -g
   )
 

@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   nodelay(w, TRUE);
 
 #ifdef GRAPHICS  
-  int speed = 30;
+  int speed = 0;
 #else
   int speed = 0;
 #endif

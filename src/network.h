@@ -23,6 +23,8 @@ public:
   static std::random_device rd;
   static std::mt19937 gen;
   static std::geometric_distribution<> d;
+  static std::ofstream stats;
+  static int bestScore;
   
   Network(std::vector<int> dimensions);
 
@@ -165,6 +167,9 @@ Network *Network::bestNetwork;
 std::random_device Network::rd;
 std::mt19937 Network::gen = std::mt19937(rd());
 std::geometric_distribution<> Network::d = std::geometric_distribution<>(ELITISM);
+std::ofstream Network::stats = std::ofstream("stats.txt");
+int Network::bestScore = 0;
+
 
 void Network::generateNetworks(int count, std::vector<int> dimensions) {
   Network::bestNetwork = new Network(dimensions);
@@ -178,7 +183,26 @@ void Network::breed(float mutationRate) {
       return n1->score > n2->score;
     });
 
-  if(Network::networks[0]->score > Network::bestNetwork->score) {
+  int score = Network::networks[0]->score;
+  
+  // if(Network::networks[0]->score > Network::bestNetwork->score) {
+  //   Network::bestNetwork->copyNetworkValues(Network::networks[0]);
+  //   Network::bestNetwork->score = Network::networks[0]->score;
+  // }
+
+  float sum = 0;
+  for(auto i : Network::networks) {
+    sum += i->score;
+  }
+  sum /= Network::networks.size();
+  
+
+  stats << score << " " << Network::bestNetwork->score << " " << sum << "\n";
+  stats.flush();
+
+  if(sum > bestScore) {
+    bestScore = sum;
+    Network::networks[0]->save(outfile);
     Network::bestNetwork->copyNetworkValues(Network::networks[0]);
     Network::bestNetwork->score = Network::networks[0]->score;
   }

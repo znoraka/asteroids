@@ -5,6 +5,9 @@
 #include <omp.h>
 
 #define SHIP_SIZE 10
+#define SHIP_COUNT 20
+
+#define ASTEROID_COUNT 10
 #define ASTEROID_SIZE 25
 
 float getAngle(float x1, float y1, float x2, float y2) {
@@ -28,7 +31,7 @@ public:
   float y;
   Network *network;
   bool alive;
-  float speed = 6.0f;
+  float speed = 8.0f;
   int score = 0;
 };
 
@@ -57,8 +60,6 @@ public:
   int bestScore = 0;
   Network *bestNetwork;
   int score = 0;
-
-  std::ofstream stats;
 
   void update(int delta);
   void saveBestNetwork(std::string filename);
@@ -106,17 +107,16 @@ float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
 Game::Game() {
   std::srand(std::time(NULL));
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < SHIP_COUNT; i++) {
     Ship *s = new Ship();
     s->init(400, 300);
     ships.push_back(s);
   } 
   aliveShips = ships.size();
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < ASTEROID_COUNT; i++) {
     asteroids.push_back(new Asteroid());
   }
-  stats.open("stats.txt");
 }
 
 void Game::update(int delta) {
@@ -169,21 +169,11 @@ void Game::update(int delta) {
     if(this->score > this->bestScore) {
       this->bestScore = score;
       this->bestNetwork->copyNetworkValues(Network::bestNetwork);
-      saveBestNetwork(outfile);
     }
     score = 0;
 
-    float sum = 0;
-    for (int i = 0; i < ships.size(); i++) {
-	sum += ships[i]->score;
-    }
-
-    stats << ships[0]->score << " " << this->bestScore << " " << sum / (float) ships.size() << "\n";
-    stats.flush();
-
     for (int i = 0; i < ships.size(); i++) {
       ships[i]->alive = true;
-      sum += ships[i]->score;
       ships[i]->score = 0;
       ships[i]->init(400, 300);
     }
