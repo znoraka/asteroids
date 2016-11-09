@@ -178,7 +178,7 @@ void Game::update(int delta) {
       ships[i]->init(400, 300);
     }
 
-    Network::breed(0.4f);
+    Network::breed(1.0f);
   }
 
   mvprintw(0, 0, "bestscore = %d  score = %d", this->bestScore, score);
@@ -249,22 +249,7 @@ void Ship::update() {
 }
 
 Asteroid::Asteroid() {
-  x = 400;
-  y = 300;
-  
-  while((x - 400) * (x - 400) + (y - 300) * (y - 300) < 200*200) {
-    x = std::rand() % 800;
-    y = std::rand() % 600;
-  }
-
-  startX = x;
-  startY = y;
-  
-  xDir = (std::rand() % 100) * 0.01 - 0.5;
-  yDir = (std::rand() % 100) * 0.01 - 0.5;
-
-  speed = std::rand() % 10;
-
+  init();
 }
 
 void Asteroid::update() {
@@ -286,6 +271,8 @@ void Asteroid::init() {
     y = std::rand() % 600;
   }
 
+  startX = x;
+  startY = y;
   
   xDir = (std::rand() % 100) * 0.01 - 0.5;
   yDir = (std::rand() % 100) * 0.01 - 0.5;

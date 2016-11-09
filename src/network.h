@@ -185,10 +185,11 @@ void Network::breed(float mutationRate) {
 
   int score = Network::networks[0]->score;
   
-  // if(Network::networks[0]->score > Network::bestNetwork->score) {
-  //   Network::bestNetwork->copyNetworkValues(Network::networks[0]);
-  //   Network::bestNetwork->score = Network::networks[0]->score;
-  // }
+  if(Network::networks[0]->score > Network::bestNetwork->score) {
+    Network::bestNetwork->copyNetworkValues(Network::networks[0]);
+    Network::bestNetwork->score = Network::networks[0]->score;
+    Network::networks[0]->save(outfile);
+  }
 
   float sum = 0;
   for(auto i : Network::networks) {
@@ -202,9 +203,9 @@ void Network::breed(float mutationRate) {
 
   if(sum > bestScore) {
     bestScore = sum;
-    Network::networks[0]->save(outfile);
-    Network::bestNetwork->copyNetworkValues(Network::networks[0]);
-    Network::bestNetwork->score = Network::networks[0]->score;
+    // Network::networks[0]->save(outfile);
+    // Network::bestNetwork->copyNetworkValues(Network::networks[0]);
+    // Network::bestNetwork->score = Network::networks[0]->score;
   }
 
   for(auto i : Network::networks) {
