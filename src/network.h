@@ -167,7 +167,7 @@ Network *Network::bestNetwork;
 std::random_device Network::rd;
 std::mt19937 Network::gen = std::mt19937(rd());
 std::geometric_distribution<> Network::d = std::geometric_distribution<>(ELITISM);
-std::ofstream Network::stats = std::ofstream("stats.txt");
+std::ofstream Network::stats("stats.txt");
 int Network::bestScore = 0;
 
 
