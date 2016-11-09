@@ -28,3 +28,4 @@ The file "stats.txt" gives statistics on the current networks, you can use gnupl
 ```sh
 plot 'stats.txt' using 0:1 with lines title "generation max", 'stats.txt' using 0:2 with lines title "selected best", 'stats.txt' using 0:3 with lines title "generation avg"
 ```
+Use left and right arrows to increase/decrease speed
