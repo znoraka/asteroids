@@ -54,6 +54,9 @@ int main(int argc, char **argv) {
 
   if(weights.size() > 0)
     game->loadNetwork(weights);
+
+  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+  int fps = 0;
   
   char ch;
   for(;;) {
@@ -80,6 +83,14 @@ int main(int argc, char **argv) {
 #endif
     clear();
     game->update(speed);
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now() - t1 ).count();
+    if(duration > 1000) {
+      fps = game->frames;
+      game->frames = 0;
+      t1 = std::chrono::high_resolution_clock::now();
+    }
+    mvprintw(3, 15, "fps = %d", fps);
     refresh();
 
 #ifdef GRAPHICS

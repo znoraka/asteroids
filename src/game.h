@@ -5,20 +5,13 @@
 #include <omp.h>
 
 #define SHIP_SIZE 10
-#define SHIP_COUNT 20
+#define SHIP_COUNT 50
 
 #define ASTEROID_COUNT 20
 #define ASTEROID_SIZE 30
 
-float getAngle(float x1, float y1, float x2, float y2) {
-  std::vector<float> v1 = {0, 1};
-  std::vector<float> v2 = {x2 - x1, y2 - y1};
-
-  float dot = v1[0] * v2[0] + v1[1] + v2[1];
-  float det = v1[0] * v2[1] - v1[1] + v2[0];
-
-  return atan2(det, dot);
-}
+std::vector<float> sins;
+std::vector<float> coss;
 
 class Ship {
 public:
@@ -74,18 +67,20 @@ public:
   int aliveShips = 0;
   int generation = 0;
 
+  int frames = 0;
+
   void createNetworks(std::vector<int> dimensions);
 
 };
 
 static Game *game = new Game();
 
-float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
+float raycast(std::vector<Asteroid*> asteroids, Ship *ship, int index) {
   float x1 = 1;
   float y1 = 0;
 
-  x1 = SHIP_SIZE * cos(angle / 57.2958);
-  y1 = SHIP_SIZE * sin(angle / 57.2958);
+  x1 = SHIP_SIZE * coss[index];
+  y1 = SHIP_SIZE * sins[index];
 
   float x2 = ship->x;
   float y2 = ship->y;
@@ -96,7 +91,7 @@ float raycast(std::vector<Asteroid*> asteroids, Ship *ship, float angle) {
     }
 
     for(auto i : asteroids) {
-      if(sqrt((i->x - x2) * (i->x - x2) + (i->y - y2) * (i->y - y2)) < i->size + SHIP_SIZE) {
+      if((i->x - x2) * (i->x - x2) + (i->y - y2) * (i->y - y2) < (i->size + SHIP_SIZE) * (i->size + SHIP_SIZE)) {
 	return sqrt((ship->x - x2) * (ship->x - x2) + (ship->y - y2) * (ship->y - y2));
       }
     }
@@ -123,6 +118,7 @@ Game::Game() {
 
 void Game::update(int delta) {
   score++;
+  frames++;
   for(auto i : asteroids) {
     i->update();
     if(delta > 0) i->draw();
@@ -137,20 +133,20 @@ void Game::update(int delta) {
       std::vector<float> inputs(div, 0);
 #pragma omp parallel for
       for (int j = 0; j < div; j++) {
-	inputs[j] = raycast(asteroids, i, (float) j * (360.0 / (float) div)) * 0.001f;
+	inputs[j] = raycast(asteroids, i, j) * 0.001f;
       }
 
 #ifdef GRAPHICS
-      int k = 0;
-      for(auto j : inputs) {
-      	sf::Vertex line[] =
-      	  {
-      	    sf::Vertex(sf::Vector2f(i->x, i->y), sf::Color(255, 0, 0)),
-      	    sf::Vertex(sf::Vector2f(i->x + j * 1000 * cos((k * (360.0 / (float) div)) / 57.2958 + M_PI * 0), i->y + j * 1000 * sin((k * (360.0 / (float) div)) / 57.2958 + M_PI * 0)), sf::Color(255, 0, 0))
-      	  };
-      	  window->draw(line, 2, sf::Lines);
-      	k++;
-      }
+      // int k = 0;
+      // for(auto j : inputs) {
+      // 	sf::Vertex line[] =
+      // 	  {
+      // 	    sf::Vertex(sf::Vector2f(i->x, i->y), sf::Color(255, 0, 0)),
+      // 	    sf::Vertex(sf::Vector2f(i->x + j * 1000 * coss[k], i->y + j * 1000 * sins[k]), sf::Color(255, 0, 0))
+      // 	  };
+      // 	  window->draw(line, 2, sf::Lines);
+      // 	k++;
+      // }
 #endif
       
       i->network->setInputs({inputs});
@@ -180,7 +176,7 @@ void Game::update(int delta) {
       ships[i]->init(400, 300);
     }
 
-    Network::breed(1.0f);
+    Network::breed(0.1f);
   }
 
   mvprintw(0, 0, "bestscore = %d  score = %d", this->bestScore, score);
@@ -195,6 +191,16 @@ void Game::createNetworks(std::vector<int> dimensions) {
     ships[i]->network = Network::networks[i];
   }
   this->bestNetwork = new Network(dimensions);
+
+  float n = dimensions[0];
+  coss.resize(n);
+  sins.resize(n);
+  
+  for (int i = 0; i < n; i++) {
+    coss[i] = cos((i / n) * 2 * M_PI);
+    sins[i] = sin((i / n) * 2 * M_PI);
+  }
+  
 }
 
 Ship::Ship() {

@@ -31,4 +31,4 @@ add_executable(
   ${source_files}
 
   )
-target_link_libraries(ml -lpthread -lncurses -lsfml-graphics -lsfml-window -lsfml-system)
+target_link_libraries(ml -lpthread -lncurses -lsfml-graphics -lsfml-window -lsfml-system -fopenmp)
