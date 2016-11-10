@@ -5,7 +5,7 @@
 #include <omp.h>
 
 #define SHIP_SIZE 10
-#define SHIP_COUNT 50
+#define SHIP_COUNT 15
 
 #define ASTEROID_COUNT 20
 #define ASTEROID_SIZE 30

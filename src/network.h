@@ -212,8 +212,10 @@ void Network::breed(float mutationRate) {
     i->score = 0;
   }
 
+  int size = Network::networks.size() - 1;
+  
   for (int i = Network::networks.size() * 0.1; i < Network::networks.size(); i++) {
-    Network::networks[i]->breed(Network::networks[d(gen)], Network::networks[d(gen)], mutationRate);
+    Network::networks[i]->breed(Network::networks[std::min(d(gen),size)], Network::networks[std::min(d(gen),size)], mutationRate);
     if(i % 15 == 0) {
       Network::networks[i]->randomValues();
     }
